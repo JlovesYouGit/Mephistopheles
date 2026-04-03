@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.hardware.optimization.source.integration</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/u/Desktop/optimised update-v2macos/build/source_integration/bin/deploy_advanced_features</string>
+        <string>deploy</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>WorkingDirectory</key>
+    <string>/Users/u/Desktop/optimised update-v2macos/build/source_integration</string>
+    <key>StandardOutPath</key>
+    <string>/Users/u/Desktop/optimised update-v2macos/build/source_integration/logs/service.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/u/Desktop/optimised update-v2macos/build/source_integration/logs/service_error.log</string>
+</dict>
+</plist>

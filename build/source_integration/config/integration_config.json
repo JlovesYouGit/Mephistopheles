@@ -1,0 +1,22 @@
+{
+    "source_base_path": "/Users/u/Desktop/optimised update-v2macos/Sources",
+    "target_architecture": "x86_64",
+    "deployment_mode": "full_integration",
+    "features_to_deploy": [
+        "handler_class_limit_management",
+        "optimal_threshold_adjustment",
+        "motherboard_routing",
+        "voltage_lane_softener",
+        "electromagnetic_discharge_control"
+    ],
+    "io_kit_services": {
+        "power_management": true,
+        "device_enumeration": true,
+        "hardware_monitoring": true
+    },
+    "xpc_configuration": {
+        "service_name": "com.hardware.optimization.source_integration",
+        "privileged_access": true,
+        "message_timeout": 30
+    }
+}

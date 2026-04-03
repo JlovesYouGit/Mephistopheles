@@ -1,0 +1,65 @@
+#!/bin/bash
+
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_FILE="$BASE_DIR/config/integration_config.json"
+LOG_FILE="$BASE_DIR/logs/deployment_$(date +%Y%m%d_%H%M%S).log"
+
+echo "🚀 Advanced Features Deployment Launcher"
+echo "========================================"
+echo "Log file: $LOG_FILE"
+echo ""
+
+# Function to execute source import
+execute_source_import() {
+    echo "📥 Executing source import handler..."
+    
+    if [[ -f "$BASE_DIR/bin/source_import_handler" ]]; then
+        "$BASE_DIR/bin/source_import_handler" 2>&1 | tee -a "$LOG_FILE"
+        return $?
+    else
+        echo "❌ Source import handler not found!" | tee -a "$LOG_FILE"
+        return 1
+    fi
+}
+
+# Function to verify deployment
+verify_deployment() {
+    echo "🔍 Verifying deployment..." | tee -a "$LOG_FILE"
+    
+    # Check if processes are running
+    if pgrep -f "source_import_handler" > /dev/null; then
+        echo "✅ Source import handler is running" | tee -a "$LOG_FILE"
+    else
+        echo "⚠️  Source import handler not detected" | tee -a "$LOG_FILE"
+    fi
+    
+    # Check imported modules count
+    MODULES_IMPORTED=$(grep -c "✅.*imported successfully" "$LOG_FILE" 2>/dev/null || echo "0")
+    echo "📊 Modules imported: $MODULES_IMPORTED" | tee -a "$LOG_FILE"
+    
+    # Check features deployed
+    FEATURES_DEPLOYED=$(grep -c "🎉.*successfully deployed" "$LOG_FILE" 2>/dev/null || echo "0")
+    echo "✨ Features deployed: $FEATURES_DEPLOYED" | tee -a "$LOG_FILE"
+}
+
+# Main execution
+case "${1:-deploy}" in
+    deploy)
+        echo "🚀 Starting full deployment process..." | tee -a "$LOG_FILE"
+        execute_source_import
+        verify_deployment
+        echo "🏁 Deployment process completed" | tee -a "$LOG_FILE"
+        ;;
+    status)
+        echo "📊 Current deployment status:" | tee -a "$LOG_FILE"
+        verify_deployment
+        ;;
+    logs)
+        echo "📖 Recent deployment logs:"
+        tail -20 "$LOG_FILE"
+        ;;
+    *)
+        echo "Usage: $0 {deploy|status|logs}"
+        exit 1
+        ;;
+esac

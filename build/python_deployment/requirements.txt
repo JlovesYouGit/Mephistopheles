@@ -1,0 +1,3 @@
+pathlib
+json5
+pyobjc-framework-Cocoa

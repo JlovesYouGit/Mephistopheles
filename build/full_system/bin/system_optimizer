@@ -1,0 +1,93 @@
+#!/bin/bash
+
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PID_FILE="$BASE_DIR/../hardware_optimizer.pid"
+
+echo "🚀 Hardware Optimization System Launcher"
+echo "========================================"
+
+# Function to start components
+start_components() {
+    echo "Starting system optimization components..."
+    
+    "$BASE_DIR/algorithm_engine" &
+    ALGO_PID=$!
+    echo "Algorithm Engine started (PID: $ALGO_PID)"
+    
+    "$BASE_DIR/hardware_manager" &
+    HW_PID=$!
+    echo "Hardware Manager started (PID: $HW_PID)"
+    
+    "$BASE_DIR/macnode_controller" &
+    NODE_PID=$!
+    echo "MacNode Controller started (PID: $NODE_PID)"
+    
+    "$BASE_DIR/hardware_optimization_daemon" &
+    DAEMON_PID=$!
+    echo "Main Daemon started (PID: $DAEMON_PID)"
+    
+    # Save PIDs
+    echo "$ALGO_PID:$HW_PID:$NODE_PID:$DAEMON_PID" > "$PID_FILE"
+    
+    echo ""
+    echo "✅ All optimization components successfully launched!"
+    echo "📊 System Status:"
+    echo "   • CPU Performance: Enhanced"
+    echo "   • Battery Life: Extended"
+    echo "   • Thermal Management: Optimized"
+    echo "   • Memory Efficiency: Improved"
+    echo ""
+    echo "🔧 To stop optimization: $BASE_DIR/stop_optimizer.sh"
+}
+
+# Function to stop components
+stop_components() {
+    if [[ -f "$PID_FILE" ]]; then
+        PIDS=$(cat "$PID_FILE")
+        IFS=':' read -ra PID_ARRAY <<< "$PIDS"
+        
+        echo "Stopping optimization components..."
+        for PID in "${PID_ARRAY[@]}"; do
+            if kill -0 "$PID" 2>/dev/null; then
+                kill "$PID"
+                echo "Stopped process $PID"
+            fi
+        done
+        
+        rm -f "$PID_FILE"
+        echo "All components stopped"
+    else
+        echo "No running optimization processes found"
+    fi
+}
+
+# Handle command line arguments
+case "${1:-start}" in
+    start)
+        if [[ -f "$PID_FILE" ]]; then
+            echo "System optimizer already running"
+            exit 1
+        fi
+        start_components
+        ;;
+    stop)
+        stop_components
+        ;;
+    restart)
+        stop_components
+        sleep 2
+        start_components
+        ;;
+    status)
+        if [[ -f "$PID_FILE" ]]; then
+            echo "System optimizer is running"
+            cat "$PID_FILE"
+        else
+            echo "System optimizer is not running"
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac

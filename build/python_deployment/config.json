@@ -1,0 +1,19 @@
+{
+    "source_path": "/Users/u/Desktop/optimised update-v2macos/Sources",
+    "target_architecture": "auto_detect",
+    "deployment_mode": "full_integration",
+    "features": [
+        "handler_class_limit_management",
+        "optimal_threshold_adjustment",
+        "motherboard_routing",
+        "voltage_lane_softener", 
+        "electromagnetic_discharge_control"
+    ],
+    "compiler_settings": {
+        "optimization_level": "O2",
+        "architecture_flags": {
+            "x86_64": ["-target", "x86_64-apple-macosx14.0"],
+            "arm64": ["-target", "arm64-apple-macosx14.0"]
+        }
+    }
+}
