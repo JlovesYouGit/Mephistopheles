@@ -56,6 +56,79 @@ struct SelfImprovementMetric {
     let converges: Bool
 }
 
+/// Metastring pattern flow for recognizing hex-to-semantic transformation patterns
+class MetastringPatternFlow {
+    private var patternHistory: [String: [Double]] = [:]  // task_type -> convergence_times
+    private var metastringSignatures: [String: String] = [:]  // query_hash -> token_pattern_signature
+    private var chronologicalSequences: [[String: Any]] = []  // temporal pattern tracking
+
+    /// Create unique signature from hex seed to token sequence mapping
+    func extractMetastringSignature(query: String, generatedTokens: [String]) -> String {
+        let queryHash = String(format: "0x%08X", abs(query.hashValue) & 0xFFFFFFFF)
+        let tokenPattern = generatedTokens.prefix(5).map { String($0.prefix(3)) }.joined(separator: "-")
+        let signature = "\(queryHash):\(tokenPattern)"
+
+        // Store for pattern recognition
+        metastringSignatures[queryHash] = signature
+        return signature
+    }
+
+    /// Track temporal patterns in optimization trajectories
+    func detectChronologicalPattern(taskType: String, convergenceTime: Double) {
+        if patternHistory[taskType] == nil {
+            patternHistory[taskType] = []
+        }
+
+        patternHistory[taskType]?.append(convergenceTime)
+
+        // Store chronological sequence
+        chronologicalSequences.append([
+            "task": taskType,
+            "convergence_time": convergenceTime,
+            "sequence_position": patternHistory[taskType]?.count ?? 0,
+            "timestamp": Date()
+        ])
+    }
+
+    /// Predict expected convergence time based on historical metastring patterns
+    func predictConvergenceFromPattern(taskType: String) -> Double? {
+        guard let times = patternHistory[taskType], times.count >= 3 else {
+            return nil
+        }
+
+        // Calculate moving average of last 5 iterations
+        let recentTimes = Array(times.suffix(5))
+        let predictedTime = recentTimes.reduce(0, +) / Double(recentTimes.count)
+
+        return predictedTime
+    }
+
+    /// Generate suggestions based on detected metastring patterns
+    func getPatternOptimizationSuggestions(taskType: String) -> [String] {
+        var suggestions: [String] = []
+
+        if let times = patternHistory[taskType], times.count >= 3 {
+            let avgTime = times.reduce(0, +) / Double(times.count)
+            let variance = times.map { pow($0 - avgTime, 2) }.reduce(0, +) / Double(times.count)
+
+            if variance > 10 {
+                suggestions.append("High variance in \(taskType) convergence (\(String(format: "%.2f", variance))) - consider stabilizing meta-learning rate")
+            }
+
+            if avgTime > 8 {
+                suggestions.append("Slow convergence pattern detected (\(String(format: "%.1f", avgTime)) rounds) - initialize with higher learning rate")
+            }
+        }
+
+        return suggestions
+    }
+
+    /// Get pattern history for analysis
+    func getPatternHistory() -> [String: [Double]] {
+        return patternHistory
+    }
+}
+
 /// Evaluation result from LLM output
 struct LLMEvaluation {
     let semanticScore: Double      // How well meaning is preserved
@@ -94,6 +167,9 @@ class OptimalThresholdOptimizer {
     private var recursiveIterations: Int
     private let maxRecursionDepth: Int = 5
 
+    // Metastring pattern flow
+    private var metastringPatternFlow: MetastringPatternFlow
+
     // MARK: - Initialization
 
     init(initialThreshold: Double = 1.0,
@@ -123,6 +199,7 @@ class OptimalThresholdOptimizer {
         self.selfImprovementHistory = []
         self.windowIndex = 0
         self.languageModelMetrics = LanguageModelMetrics()
+        self.metastringPatternFlow = MetastringPatternFlow()
     }
 
     // MARK: - Public Methods
@@ -251,10 +328,22 @@ class OptimalThresholdOptimizer {
 
             selfImprovementHistory.append(metric)
 
+            // Track metastring pattern for chronological analysis
+            metastringPatternFlow.detectChronologicalPattern(
+                taskType: "general_optimization",
+                convergenceTime: languageModelMetrics.convergenceScore
+            )
+
             // Check convergence criteria
             if abs(performanceDelta) < 0.001 && languageModelMetrics.convergenceScore > 0.85 {
                 converged = true
                 print("✓ Converged at iteration \(iteration), depth \(recursionDepth + 1)")
+
+                // Get pattern-based suggestions
+                let suggestions = metastringPatternFlow.getPatternOptimizationSuggestions(taskType: "general_optimization")
+                for suggestion in suggestions {
+                    print("  💡 Pattern insight: \(suggestion)")
+                }
             }
 
             // Early stopping if divergence detected
@@ -340,6 +429,11 @@ class OptimalThresholdOptimizer {
     /// Get current language model metrics
     func getLanguageModelMetrics() -> LanguageModelMetrics {
         return languageModelMetrics
+    }
+
+    /// Get metastring pattern flow instance
+    func getMetastringPatternFlow() -> MetastringPatternFlow {
+        return metastringPatternFlow
     }
 
     /// Optimize for specific language task
